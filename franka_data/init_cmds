@@ -1,0 +1,5 @@
+cd catkin_ws/ 
+source devel/setup.bash 
+
+roslaunch cobot_controllers rl_runner.launch
+roslaunch cobot_controllers moveit_control.launch 
