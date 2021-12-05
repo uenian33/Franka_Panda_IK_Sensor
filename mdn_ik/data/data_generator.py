@@ -86,7 +86,7 @@ def generate_data():
     jmax = np.amax(joints, axis=0)
     jmin = np.amin(joints, axis=0)
     jmean = (jmax+jmin)/2.
-
+    """
     for _ in range(int(num_data/joints.shape[0])):
         for config in joints:
             # generating feature and label
@@ -103,6 +103,7 @@ def generate_data():
             str_pose = [str(i) for i in pose]
             str_config = [str(i) for i in config]
             file.write(",".join(str_pose) + "," + ",".join(str_config) + "\n")
+    """
 
     for _ in range(int(num_data/joints.shape[0])):
         for config in joints:

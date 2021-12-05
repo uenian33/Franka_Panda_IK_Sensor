@@ -45,7 +45,7 @@ def generate_data():
 
     num_data = DataGenConfig.NUM_DATA
     # data generating loop
-    for i in range(1):#num_data):
+    for i in range(0):#num_data):
         # generating feature and label
         config = gen_rand_config(lower_limit, upper_limit)
         pinocchio.framesForwardKinematics(model, data, config)
@@ -86,8 +86,8 @@ def generate_data():
     jmax = np.amax(joints, axis=0)
     jmin = np.amin(joints, axis=0)
     jmean = (jmax+jmin)/2.
-
-    for _ in range(int(num_data/joints.shape[0])*2):
+    """
+    for _ in range(int(num_data/joints.shape[0])):
         for config in joints:
             # generating feature and label
             pinocchio.framesForwardKinematics(model, data, config)
@@ -103,11 +103,31 @@ def generate_data():
             str_pose = [str(i) for i in pose]
             str_config = [str(i) for i in config]
             file.write(",".join(str_pose) + "," + ",".join(str_config) + "\n")
+    """
 
-    for _ in range(int(num_data/joints.shape[0])*2):
+    for _ in range(int(num_data/joints.shape[0])):
         for config in joints:
-            jdelt = np.random.uniform(-1,1, size=jmean.shape)*(jmax - jmean)
-            config += jdelt
+            jdelt = np.random.uniform(-1.5,1.5, size=jmean.shape)*(jmax - jmean)
+            config = config + jdelt
+            # generating feature and label
+            pinocchio.framesForwardKinematics(model, data, config)
+            pose = pinocchio.SE3ToXYZQUAT(data.oMf[ee_link_id])
+            # converting quaternion to euler angle 
+            if DataGenConfig.IS_QUAT == False:
+                rotation = R.from_quat(list(pose[3:]))
+                rotation_euler = rotation.as_euler("xyz")
+                pose = np.concatenate((pose[0:3],rotation_euler))
+            # annoying string manipulation for saving in text file
+            # if we only care about a subset of the total chain
+            config = config[:DataGenConfig.JOINT_DIMS]
+            str_pose = [str(i) for i in pose]
+            str_config = [str(i) for i in config]
+            file.write(",".join(str_pose) + "," + ",".join(str_config) + "\n")
+
+    for _ in range(int(num_data/joints.shape[0])):
+        for config in joints:
+            jdelt = np.random.uniform(-1.5,1.5, size=jmean.shape)*(jmax - jmean)
+            config = jmean + jdelt
             # generating feature and label
             pinocchio.framesForwardKinematics(model, data, config)
             pose = pinocchio.SE3ToXYZQUAT(data.oMf[ee_link_id])

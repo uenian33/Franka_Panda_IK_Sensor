@@ -4,7 +4,7 @@ import torch.optim as optim
 import logging
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
-from mdn.models import MixtureDensityNetwork, SimpleNet, DenseNet
+from utils.models import MixtureDensityNetwork, SimpleNet, DenseNet, SelectionNet
 from os.path import dirname, abspath, join
 
 import pinocchio
@@ -24,12 +24,12 @@ from data.data_config import DataGenConfig
 import torch_optimizer as optim
 
 # training hyperparameters
-BATCH_SIZE = 512
+BATCH_SIZE = 2048
 NUM_EPOCHS = 1000
 LEARNING_RATE = 1e-4
 MOMENTUM = 0.95
 LEARNING_RATE_DECAY = 0.97
-n_components=10
+n_components=30
 IN_DIM=7
 OUT_DIM=7
 WEIGHT_PATH="weights/mdn_ik_weights.pth"
@@ -57,9 +57,11 @@ def cvae_fk_loss(joint_config: torch.Tensor, true_pose: torch.Tensor,
 def test():
     # device = torch.device("cpu")
     #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = SimpleNet(IN_DIM, OUT_DIM)
+    #model = SimpleNet(IN_DIM, OUT_DIM)
     
     #model = MixtureDensityNetwork(IN_DIM, OUT_DIM, n_components=n_components)
+    model = SimpleNet(IN_DIM, OUT_DIM)
+
     model.load_state_dict(torch.load(WEIGHT_PATH))
     model.eval()
 
@@ -109,8 +111,9 @@ def train():
 
     # device = torch.device("cpu")
     #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = SimpleNet(IN_DIM, OUT_DIM)
+    #model = SimpleNet(IN_DIM, OUT_DIM)
     #model = MixtureDensityNetwork(IN_DIM, OUT_DIM, n_components=n_components)
+    model = SimpleNet(IN_DIM, OUT_DIM)
 
     # optimizer
     #optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -142,9 +145,11 @@ def train():
             mseloss = torch.nn.MSELoss()
             preds = model(pose)
             #loss = model.loss(pose, joint_config).mean()
-            reg_loss = mseloss(preds / np.pi * 180 * 100, joint_config / np.pi * 180 * 100)
-            recon_loss = 0#cvae_fk_loss(preds, pose, robot)
-            loss = recon_loss + reg_loss
+            loss = 0
+          
+            #weighted_preds = model.weighted_forward(pose)
+            loss += cvae_fk_loss(preds, pose, robot)
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -164,7 +169,7 @@ def train():
         torch.save(model.state_dict(), WEIGHT_PATH)
 
 if __name__ == "__main__":
-    #test()
-    train()
+    test()
+    #train()
 
 

@@ -13,8 +13,8 @@ from data.data_generator import generate_data
 import torch_optimizer as optim
 
 # training hyperparameters
-BATCH_SIZE = 512
-NUM_EPOCHS = 200
+BATCH_SIZE = 1024
+NUM_EPOCHS = 1000
 LEARNING_RATE = 1e-4
 MOMENTUM = 0.95
 LEARNING_RATE_DECAY = 0.97
@@ -36,7 +36,7 @@ def cvae_fk_loss(joint_config: torch.Tensor, true_pose: torch.Tensor,
                  robot_model: DifferentiableRobotModel, beta: float = 0.02) -> torch.Tensor:
     pose = torch.cat(robot_model.compute_forward_kinematics(joint_config, "panda_link7"), axis=1)
     # reconstruction loss in task space
-    recon_loss = nn.functional.mse_loss(true_pose, pose, reduction="sum")
+    recon_loss = nn.functional.mse_loss(true_pose*100, pose*100, reduction="sum")
     kl_loss = 0.5 * torch.sum(log_variance.exp() + mean.pow(2) - 1. - log_variance)
     return recon_loss + beta*kl_loss
 
@@ -90,10 +90,10 @@ def train():
             pose = pose.to(device)
             joint_config = joint_config.to(device)
             joint_config_pred, mean, log_variance = cvae(pose, joint_config)
-            loss = cvae_loss(joint_config_pred, joint_config,
-                                mean, log_variance, beta)
-            #loss = cvae_fk_loss(joint_config_pred, pose, 
-            #                    mean, log_variance, robot_model, beta)
+            #loss = cvae_loss(joint_config_pred, joint_config,
+            #                    mean, log_variance, beta)
+            loss = cvae_fk_loss(joint_config_pred, pose, 
+                                mean, log_variance, robot_model, beta)
             epoch_error += loss.item()
             optimizer.zero_grad()
             loss.backward()
