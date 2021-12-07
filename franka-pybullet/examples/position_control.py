@@ -35,7 +35,7 @@ def test_cartesian_trajs():
     #print(end_poses)
 
     for _ in range(10):
-        delt_ang = 0#np.random.uniform(-1, 1) * 20
+        delt_ang = 3#np.random.uniform(-1, 1) * 20
         delt_x = 0.0#np.random.uniform(-1, 1) * 0.01
         delt_y = 0.0#np.random.uniform(-1, 1) * 0.02
         for tid, ct in enumerate(cat_trajs):
@@ -43,14 +43,20 @@ def test_cartesian_trajs():
             robot.reset()
             print('----------------------------------------------')
             for cid, cat_pos in enumerate(ct):
-                cat_pos[0] += delt_x
-                cat_pos[1] += delt_y
-                cat_pos[3] += delt_ang / 180 * np.pi
                 robot.step(cat_pos)
                 pos = robot.getEEStatesEuler()
                 print(pos[0]-cat_pos[0], pos[1]-cat_pos[1], (pos[3]-cat_pos[3])/np.pi*180)
                 print(delt_x, delt_y, delt_ang)
 
+            for cid, _ in enumerate(ct):
+                cat_pos = ct[-1]
+                cat_pos[0] = cat_pos[0] + delt_x
+                cat_pos[1] = cat_pos[1] + delt_y
+                cat_pos[3] = cat_pos[2] + delt_ang / 180 * np.pi
+                robot.step(cat_pos)
+                pos = robot.getEEStatesEuler()
+                print(pos[0]-cat_pos[0], pos[1]-cat_pos[1], (pos[3]-cat_pos[3])/np.pi*180)
+                print(delt_x, delt_y, delt_ang)
 
     for tid, ct in enumerate(cat_trajs):
         ct = ct[::10]

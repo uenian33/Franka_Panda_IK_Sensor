@@ -86,9 +86,14 @@ class TargetPoseDataset(Dataset):
         self.ys = []
         self.xs = []
 
+        self.raw_ys = []
+        self.raw_xs = []
+
         self.load_data()
 
     def load_data(self):
+        self.raw_xs = []
+        self.raw_ys = []
         expert_infos = self.expert_data[4]
 
         for exp_info_traj in expert_infos:
@@ -109,13 +114,20 @@ class TargetPoseDataset(Dataset):
 
                 #print(pose)
 
-                self.ys.append(y)
-                self.xs.append(x)
-        print(self.ys)
+                self.raw_ys .append(y)
+                self.raw_xs .append(x)
+        
+        self.convert_data()
+
+        return
+
+    def convert_data(self):
+        self.ys = self.raw_ys.copy()
+        self.xs = self.raw_xs.copy()
 
         self.xs = torch.tensor(np.array(self.xs))
         self.ys = torch.tensor(np.array(self.ys))
-
+        return 
     def __len__(self):
         return len(self.xs)
 
@@ -124,6 +136,7 @@ class TargetPoseDataset(Dataset):
             idx = idx.tolist()
 
         return self.xs[idx].float(), self.ys[idx].float()
+
 
 
 def get_loader(args):

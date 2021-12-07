@@ -13,13 +13,13 @@ class Solver(object):
         self.model = model#Transformer(args)#.cuda()
         self.mse = nn.MSELoss()
 
-        self.model_save_path=os.path.join(self.args.model_path, 'Transformer.pt')
-        self.finalmodel_save_path=os.path.join(self.args.model_path, 'Transformer_final.pt')
+        self.model_save_path=os.path.join(self.args['model_path'], 'Transformer.pt')
+        self.finalmodel_save_path=os.path.join(self.args['model_path'], 'Transformer_final.pt')
 
         print('--------Network--------')
         print(self.model)
 
-        if args.load_model:
+        if args['load_model']:
             print("Using pretrained model")
             self.load_model()
             #self.model.load_state_dict(torch.load(os.path.join(self.args.model_path, 'Transformer.pt')))
@@ -57,26 +57,30 @@ class Solver(object):
         return train_acc, test_acc
 
     def load_model(self):
-        self.model.load_state_dict(torch.load(self.finalmodel_save_path))
+        self.model.load_state_dict(torch.load(self.model_save_path))
         #model.eval()
+        return
+
+    def save_model(self, path):
+        torch.save(self.model.state_dict(), path)
         return
 
     def train(self):
         total_iters = 0
         best_acc = 0
         iter_per_epoch = len(self.train_loader)
-        test_epoch = max(self.args.epochs // 10, 1)
+        test_epoch = max(self.args['epochs'] // 10, 1)
 
         #optimizer = optim.Adam(self.model.parameters(), self.args.lr, weight_decay=1e-5)
         #cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args.epochs)
 
         optimizer = torch_optim.Yogi(self.model.parameters(),
-                               self.args.lr, weight_decay=1e-5)
-        cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args.epochs)
+                               self.args['lr'], weight_decay=1e-5)
+        cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args['epochs'])
 
         
         
-        for epoch in range(self.args.epochs):
+        for epoch in range(self.args['epochs']):
 
             self.model.train()
 
@@ -94,7 +98,7 @@ class Solver(object):
 
                 if epoch % 100 == 0: #i == (iter_per_epoch - 1)
                     print('Ep: %d/%d, it: %d/%d, total_iters: %d, err: %.4f'
-                          % (epoch + 1, self.args.epochs, i + 1, iter_per_epoch, total_iters, clf_loss))
+                          % (epoch + 1, self.args['epochs'], i + 1, iter_per_epoch, total_iters, clf_loss))
 
             if (epoch + 1) % 100 == 0:
                 mse= self.test_dataset('test')
@@ -102,11 +106,12 @@ class Solver(object):
 
                 if mse > best_acc:
                     best_acc = mse
-                    torch.save(self.model.state_dict(), self.model_save_path)
+                    self.save_model(self.model_save_path)
 
             cos_decay.step()
-            torch.save(self.model.state_dict(),  self.finalmodel_save_path)
+            self.save_model(self.finalmodel_save_path)
 
+        
 class SequenceSolver(object):
     def __init__(self, args, model, train_loader, test_loader):
         self.args = args
@@ -114,13 +119,13 @@ class SequenceSolver(object):
         self.model = model#Transformer(args)#.cuda()
         self.mse = nn.MSELoss()
 
-        self.model_save_path=os.path.join(self.args.model_path, 'Transformer.pt')
-        self.finalmodel_save_path=os.path.join(self.args.model_path, 'Transformer_final.pt')
+        self.model_save_path=os.path.join(self.args['model_path'], 'Transformer.pt')
+        self.finalmodel_save_path=os.path.join(self.args['model_path'], 'Transformer_final.pt')
 
         print('--------Network--------')
         print(self.model)
 
-        if args.load_model:
+        if args['load_model']:
             print("Using pretrained model")
             self.load_model()
             #self.model.load_state_dict(torch.load(os.path.join(self.args.model_path, 'Transformer.pt')))
@@ -166,18 +171,18 @@ class SequenceSolver(object):
         total_iters = 0
         best_acc = 0
         iter_per_epoch = len(self.train_loader)
-        test_epoch = max(self.args.epochs // 10, 1)
+        test_epoch = max(self.args['epochs'] // 10, 1)
 
         #optimizer = optim.Adam(self.model.parameters(), self.args.lr, weight_decay=1e-5)
         #cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args.epochs)
 
         optimizer = torch_optim.Yogi(self.model.parameters(),
-                               self.args.lr, weight_decay=1e-5)
-        cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args.epochs)
+                               self.args['lr'], weight_decay=1e-5)
+        cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args['epochs'])
 
         
         
-        for epoch in range(self.args.epochs):
+        for epoch in range(self.args['epochs']):
 
             self.model.train()
 
@@ -195,7 +200,7 @@ class SequenceSolver(object):
 
                 if epoch % 100 == 0: #i == (iter_per_epoch - 1)
                     print('Ep: %d/%d, it: %d/%d, total_iters: %d, err: %.4f'
-                          % (epoch + 1, self.args.epochs, i + 1, iter_per_epoch, total_iters, clf_loss))
+                          % (epoch + 1, self.args['epochs'], i + 1, iter_per_epoch, total_iters, clf_loss))
 
             if (epoch + 1) % 100 == 0:
                 mse= self.test_dataset('test')

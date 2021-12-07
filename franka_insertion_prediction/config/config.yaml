@@ -1,0 +1,12 @@
+epochs: 10000
+batch_size: 128
+n_outputs: 3
+num_workers: 1
+lr: 0.001
+log_step: 50
+
+data_path: 'data/expert_recordings.pkl'
+prior_traj_path: 'data/trajectories/expert_joints_poses.npy'
+prior_cartesian_path: 'data/trajectories/expert_cartesian_poses.npy'
+model_path: 'weights/'
+load_model: False

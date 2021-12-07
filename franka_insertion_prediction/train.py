@@ -1,10 +1,14 @@
 import argparse
 import datetime
 import os
+import pickle
 from utils.solver import Solver, SequenceSolver
 from utils.transformer import TModel, SimpleNet, TSequenceModel
-from utils.dataloader import get_loader, get_sequence_loader
+from utils.data_loader import get_loader, get_sequence_loader
+from utils.human_priors import HumanPrior
 
+    
+        
         
 def main(args, train=True):
     os.makedirs(args.model_path, exist_ok=True)
@@ -60,6 +64,7 @@ def print_args(args):
 
 
 if __name__ == '__main__':
+    """
     parser = argparse.ArgumentParser(description='Transformer')
     parser.add_argument('--epochs', type=int, default=10000)
     parser.add_argument('--batch_size', type=int, default=128)
@@ -77,7 +82,10 @@ if __name__ == '__main__':
     print("Started at " + str(start_time.strftime('%Y-%m-%d %H:%M:%S')))
 
     args = parser.parse_args()
-    args.model_path = os.path.join(args.model_path)
+    """
+    f = open('config/config.yaml')
+    args = yaml.load(f)
+    args['model_path'] = os.path.join(args.model_path)
     print(args)
     
     #main(args)
