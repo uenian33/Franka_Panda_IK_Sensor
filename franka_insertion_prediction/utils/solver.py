@@ -65,7 +65,7 @@ class Solver(object):
         torch.save(self.model.state_dict(), path)
         return
 
-    def train(self):
+    def train(self, epochs=None):
         total_iters = 0
         best_acc = 0
         iter_per_epoch = len(self.train_loader)
@@ -78,9 +78,10 @@ class Solver(object):
                                self.args['lr'], weight_decay=1e-5)
         cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.args['epochs'])
 
+        if epochs is None:
+            epochs = self.args['epochs']
         
-        
-        for epoch in range(self.args['epochs']):
+        for epoch in range(epochs):
 
             self.model.train()
 
