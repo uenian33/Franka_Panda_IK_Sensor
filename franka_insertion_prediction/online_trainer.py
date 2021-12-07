@@ -100,7 +100,7 @@ class OnlineLearner(object):
     
         
         
-def main():
+def test():
 
     #args['model_path = os.path.join(args['model_path)
     learner = OnlineLearner('config/config.yaml')
@@ -118,9 +118,7 @@ def print_args(args):
     print()
 
 
-if __name__ == '__main__':
-    
-    
-    main()
+#if __name__ == '__main__':
+#    test()
 
     
