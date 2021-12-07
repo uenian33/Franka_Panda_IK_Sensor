@@ -1,0 +1,12 @@
+epochs: 10000
+batch_size: 128
+n_outputs: 3
+num_workers: 1
+lr: 0.001
+log_step: 50
+
+data_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/expert_recordings.pkl'
+prior_traj_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_joints_poses.npy'
+prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_cartesian_poses.npy'
+model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/'
+load_model: True

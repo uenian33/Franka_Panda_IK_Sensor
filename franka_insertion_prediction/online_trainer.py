@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/')
 import argparse
 import datetime
 import os
