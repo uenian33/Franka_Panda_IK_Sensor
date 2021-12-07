@@ -35,9 +35,9 @@ def test_cartesian_trajs():
     #print(end_poses)
 
     for _ in range(10):
-        delt_ang = 20#np.random.uniform(-1, 1) * 20
-        delt_x = 0.#np.random.uniform(-1, 1) * 0.01
-        delt_y = 0#np.random.uniform(-1, 1) * 0.02
+        delt_ang = 0#np.random.uniform(-1, 1) * 20
+        delt_x = 0.0#np.random.uniform(-1, 1) * 0.01
+        delt_y = 0.0#np.random.uniform(-1, 1) * 0.02
         for tid, ct in enumerate(cat_trajs):
             ct = ct[::2]
             robot.reset()
@@ -102,7 +102,8 @@ def load_expert_buffer():
     with open('../franka_panda_insertion_logs/expert_replay.pkl', 'rb') as f:
         exp_buffer = pickle.load(f)
 
-load_joint_trajs()
-a()
+#load_joint_trajs()
+#a()
 test_cartesian_trajs()
+a()
 load_expert_buffer()  

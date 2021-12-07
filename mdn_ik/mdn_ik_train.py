@@ -169,7 +169,7 @@ def train():
         torch.save(model.state_dict(), WEIGHT_PATH)
 
 if __name__ == "__main__":
-    test()
-    #train()
+    #test()
+    train()
 
 
