@@ -63,11 +63,20 @@ class OnlineLearner(object):
         self.solver = Solver(self.args, self.model, self.train_loader, self.test_loader)
         self.solver.train()
 
-    def choose_action(self, x):
+    def choose_action(self, x, real_joints, prior_type='action', nsteps=5):
+        """
+            prior_type: 'action', 'seg_traj', 'whole_traj'
+        """
         x = torch.tensor([x])
         target_pos = solver.model(x)
 
-        traj = self.human_priors.retrieve_prior(target_pos)
+        if prior_type=='action':
+            traj = self.human_priors.retrieve_prior_action(target_pos, real_joints)
+        if prior_type=='seg_traj':
+            traj = self.human_priors.retrieve_prior_segment_trajectory(target_pos, real_joints, segment_size=nsteps)
+        if prior_type=='whole_traj':
+            traj = self.human_priors.retrieve_prior_whole_trajectory(target_pos)
+            
         return traj
 
 

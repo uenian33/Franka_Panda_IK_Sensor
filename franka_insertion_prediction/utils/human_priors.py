@@ -29,7 +29,41 @@ class HumanPrior(object):
 		np.save(self.cartesian_traj_path.split('.')[0]+'_new', np.array(self.cartesian_trajs))
 
 
-	def retrieve_prior(self, preds):
+	def retrieve_prior_action(self, preds, real_joints):
+		targets = np.array(targets)
+		closest_id = np.amin(np.linalg.norm(targets-preds))
+
+		likely_traj = self.joint_trajs[closest_id]
+
+		real_joints = np.array(real_joints)
+		likely_traj = np.array(likely_traj)
+		a_id = np.amin(np.linalg.norm(likely_traj-real_joints))
+
+		# return the next action of the most similar action from the most likely trajectory
+		try: 
+			action = likely_traj[a_id+1]
+		except:
+			action = likely_traj[a_id]
+
+		return action
+
+	def retrieve_prior_segment_trajectory(self, preds, real_joints, segment_size=5):
+		targets = np.array(targets)
+		closest_id = np.amin(np.linalg.norm(targets-preds))
+
+		likely_traj = self.joint_trajs[closest_id]
+
+		real_joints = np.array(real_joints)
+		likely_traj = np.array(likely_traj)
+		a_id = np.amin(np.linalg.norm(likely_traj-real_joints))
+
+		# return the next action of the most similar action from the most likely trajectory
+		actions = likely_traj[a_id : a_id+segment_size]
+
+		return actions
+
+
+	def retrieve_prior_whole_trajectory(self, preds):
 		targets = np.array(targets)
 		closest_id = np.amin(np.linalg.norm(targets-preds))
 
