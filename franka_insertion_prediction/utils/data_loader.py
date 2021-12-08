@@ -35,7 +35,7 @@ class TargetPoseSequenceDataset(Dataset):
             for info in exp_info_traj[:]: 
                 #print(info)
                 #a()
-                ext_f = np.array(info[-1])
+                ext_f = np.array(info[-2])
                 s = np.array(info[0])
                 a = np.array(info[1])
                 x = np.stack([s,a])#.flatten()
@@ -71,7 +71,7 @@ class TargetPoseSequenceDataset(Dataset):
 class TargetPoseDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, path):
+    def __init__(self, path, configs):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -82,7 +82,7 @@ class TargetPoseDataset(Dataset):
         with open(path, 'rb') as f:
             self.expert_data = pickle.load(f)
 
-        
+        self.configs = configs
         self.ys = []
         self.xs = []
 
@@ -92,30 +92,40 @@ class TargetPoseDataset(Dataset):
         self.load_data()
 
     def load_data(self):
-        self.raw_xs = []
-        self.raw_ys = []
-        expert_infos = self.expert_data[4]
+        if not self.configs['resume']:
+            self.raw_xs = []
+            self.raw_ys = []
+            expert_infos = self.expert_data[4]
 
-        for exp_info_traj in expert_infos:
-            for info in exp_info_traj[:]: 
-                #print(info)
-                #a()
-                ext_f = np.mean(np.array(info[-1]), axis=0)
-                s = np.array(info[0])
-                a = np.array(info[1])
-                x = np.stack([s,a,ext_f])#.flatten()
+            for exp_info_traj in expert_infos:
+                for info in exp_info_traj[:]: 
+                    # use previous ee pose, ee velocities, ee wrench for task laerning
+                    previous_ee_pose_quat = info['previous_ee_pose_quat']
+                    previous_ee_pose_euler = transformation.euler_from_quaternion(previous_ee_pose_quat[3:])
+                    previous_ee_pose = np.append(previous_ee_pose_quat[:3], previous_ee_pose_euler)
+                    
+                    ee_cartesian_velocities = np.mean(np.array(info['ee_cartesian_velocities']), axis=0)
+                    ee_wrench = np.mean(np.array(info['ee_cartesian_wrench_sequence']), axis=0)
 
-                position = exp_info_traj[-1][2]
-                #print(position)
-                pose = exp_info_traj[-1][3]
-                euler = transformation.euler_from_quaternion(pose)
-                euler = np.array(euler) / np.pi * 180
-                y = np.array([position[0]*1000, position[1]*1000, euler[0]]).astype(np.float64)
+                    x = np.stack([previous_ee_pose,ee_cartesian_velocities,ee_wrench])#.flatten()
 
-                #print(pose)
+                    # use x, y, skew as the prediction label
+                    position = exp_info_traj[-1]['ee_pose_quat'][:3]
+                    pose = exp_info_traj[-1]['ee_pose_quat'][3:]
+                    euler = transformation.euler_from_quaternion(pose)
+                    euler = np.array(euler) / np.pi * 180
+                    y = np.array([position[0]*1000, position[1]*1000, euler[0]]).astype(np.float64)
 
-                self.raw_ys .append(y)
-                self.raw_xs .append(x)
+                    self.raw_ys.append(y)
+                    self.raw_xs.append(x)
+        else:
+            print('load previous generated online data...')
+
+            path = self.configs['online_data_save_path']
+            with open(path, 'rb') as data_file:
+                online_data = pickle.load(data_file)
+            self.raw_xs, self.raw_ys = online_data[0], online_data[1]
+
         
         self.convert_data()
 
@@ -128,6 +138,7 @@ class TargetPoseDataset(Dataset):
         self.xs = torch.tensor(np.array(self.xs))
         self.ys = torch.tensor(np.array(self.ys))
         return 
+
     def __len__(self):
         return len(self.xs)
 

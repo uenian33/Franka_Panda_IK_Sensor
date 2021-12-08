@@ -16,8 +16,8 @@ class Solver(object):
         self.model_save_path=os.path.join(self.args['model_path'], 'Transformer.pt')
         self.finalmodel_save_path=os.path.join(self.args['model_path'], 'Transformer_final.pt')
 
-        print('--------Network--------')
-        print(self.model)
+        #print('--------Network--------')
+        #print(self.model)
 
         if args['load_model']:
             print("Using pretrained model")
@@ -43,7 +43,7 @@ class Solver(object):
                 preds = self.model(inputs)
             
             mse_loss += self.mse(preds, labels)
-            print((preds - labels) / np.array([1000, 1000, 10]))
+            #print((preds - labels) / np.array([1000, 1000, 1]))
 
         return mse_loss
 
@@ -65,7 +65,7 @@ class Solver(object):
         torch.save(self.model.state_dict(), path)
         return
 
-    def train(self, epochs=None):
+    def train(self, epochs=None, log_epoch=50):
         total_iters = 0
         best_acc = 0
         iter_per_epoch = len(self.train_loader)
@@ -97,11 +97,11 @@ class Solver(object):
                 clf_loss.backward()
                 optimizer.step()
 
-                if epoch % 100 == 0: #i == (iter_per_epoch - 1)
+                if epoch % log_epoch == 0: #i == (iter_per_epoch - 1)
                     print('Ep: %d/%d, it: %d/%d, total_iters: %d, err: %.4f'
                           % (epoch + 1, self.args['epochs'], i + 1, iter_per_epoch, total_iters, clf_loss))
 
-            if (epoch + 1) % 100 == 0:
+            if (epoch + 1) % log_epoch == 0:
                 mse= self.test_dataset('test')
                 print("Test acc: %0.2f" % (mse))
 
