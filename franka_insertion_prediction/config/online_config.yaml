@@ -7,9 +7,12 @@ log_step: 50
 
 data_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/expert_recordings.pkl'
 
-prior_traj_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_joints_poses.npy'
-prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_cartesian_poses.npy'
+#prior_traj_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_joints_poses.npy'
+#prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/trajectories/expert_cartesian_poses.npy'
+prior_traj_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/expert_joints_poses_new.npy'
+prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/expert_cartesian_poses_new.npy'
 prior_targets_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/expert_targets.npy'
+explore_prior_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/raw_explore/'
 
 model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/'
 

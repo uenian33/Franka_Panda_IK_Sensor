@@ -72,7 +72,7 @@ class HumanPrior(object):
 
 
 	def retrieve_prior_action(self, preds, real_joints):
-		targets = np.array(self.targets)
+		targets = np.array(self.targets) * np.array([[1000, 1000,]])
 		print(targets, preds)
 		closest_id = np.argmin(np.linalg.norm(targets-preds))
 
@@ -94,7 +94,8 @@ class HumanPrior(object):
 		return action
 
 	def retrieve_prior_segment_trajectory(self, preds, real_joints, sample_ratio=5, segment_size=5):
-		targets = np.array(self.targets)
+		targets = np.array(self.targets) * np.array([[1000, 1000,]])
+		print(targets, preds)
 		closest_id = np.argmin(np.linalg.norm(targets-preds))
 
 		likely_traj = self.joint_trajs[closest_id][::sample_ratio]
@@ -111,8 +112,11 @@ class HumanPrior(object):
 
 	def retrieve_prior_whole_trajectory(self, preds, sample_ratio=5):
 		targets = np.array(self.targets)
+		targets[:,0] = targets[:,0]*1000
+		targets[:,1] = targets[:,1]*1000
+		# * np.array([[1000, 1000,]])
+		print(preds,targets)
 		closest_id = np.argmin(np.linalg.norm(targets-preds))
-		print(preds, targets)
 
 		return self.joint_trajs[closest_id][::sample_ratio]
 

@@ -100,7 +100,7 @@ class OnlineLearner(object):
     def target_prediction(self, x):
 
         x = torch.tensor([x]).float()
-        target_pos = self.solver.model(x).detach().numpy()[0] / np.array([1000, 1000, 1])
+        target_pos = self.solver.model(x).detach().numpy()[0]
 
         return target_pos
 
