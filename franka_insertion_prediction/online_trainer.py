@@ -10,7 +10,7 @@ import numpy as np
 from utils.solver import Solver, SequenceSolver
 from utils.transformation import quaternion_from_euler, euler_from_quaternion
 from utils.transformer import TModel, SimpleNet, TSequenceModel
-from utils.data_loader import get_loader, get_sequence_loader, TargetPoseDataset
+from utils.data_loader import get_loader, get_sequence_loader, TargetPoseDataset, TargetPoseSequenceDataset
 from utils.human_priors import HumanPrior
 
 class OnlineLearner(object):
@@ -25,11 +25,18 @@ class OnlineLearner(object):
         args = yaml.load(f)
 
         self.args = args
-        os.makedirs(args['model_path'], exist_ok=True)
+        #os.makedirs(args['model_path'], exist_ok=True)
 
-        self.model = TModel(patch_dim=patch_dim, num_patches=num_patches, out_dim=3, 
-                    dim=64, depth=5, heads=10, mlp_dim=64, 
-                    pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.)
+        if self.args['model_type']=='single':
+            self.model = TModel(patch_dim=patch_dim, num_patches=num_patches, out_dim=3, 
+                        dim=64, depth=5, heads=10, mlp_dim=64, 
+                        pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.)
+        elif self.args['model_type']=='sequence':
+            self.model = TSequenceModel(patch_dim=patch_dim, num_patches=num_patches, out_dim=3, 
+                        dim=64, depth=5, heads=10, mlp_dim=64, 
+                        pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.)
+        else:
+            print('model type must be either \'single\' or \'sequence\'')
 
         self.human_priors = HumanPrior(self.args)
 
@@ -42,11 +49,14 @@ class OnlineLearner(object):
         self.solver = Solver(args, self.model, self.train_loader, self.test_loader)
 
     def load_dataset(self):
-        self.train_set = TargetPoseDataset(path=self.args['data_path'], configs=self.args)
-        self.train_set.xs = self.train_set.xs[:-10]
-        self.train_set.ys = self.train_set.ys[:-10]
+        if self.args['model_type']=='single':
+            self.train_set = TargetPoseDataset(path=self.args['data_path'], configs=self.args)
+            self.test_set = TargetPoseDataset(path=self.args['data_path'], configs=self.args)
+          
+        elif self.args['model_type']=='sequence':
+            self.train_set = TargetPoseSequenceDataset(path=self.args['data_path'], configs=self.args)
+            self.test_set = TargetPoseSequenceDataset(path=self.args['data_path'], configs=self.args)
 
-        self.test_set = TargetPoseDataset(path=self.args['data_path'], configs=self.args)
         self.test_set.xs = self.test_set.xs[-10:]
         self.test_set.ys = self.test_set.ys[-10:]
 
@@ -58,7 +68,8 @@ class OnlineLearner(object):
         self.test_loader = torch.utils.data.DataLoader(dataset=self.test_set,
                                                     batch_size=1024 * 2,
                                                     shuffle=False,
-                                                    drop_last=False)    
+                                                    drop_last=False)  
+
 
     def load_model(self):
         self.solver.load_model()
@@ -165,12 +176,12 @@ class OnlineLearner(object):
 def test():
 
     #args['model_path = os.path.join(args['model_path)
-    learner = OnlineLearner('config/config.yaml')
-    #learner.learn()
-    learner.load_model()
+    learner = OnlineLearner(args_path='config/config.yaml')
+    learner.learn()
+    #learner.load_model()
     tmp = 'data/test.npy'
-    learner.save_data(tmp)
-    learner.save_human_prior()
+    #learner.save_data(tmp)
+    #learner.save_human_prior()
 
    
 
@@ -180,7 +191,7 @@ def print_args(args):
     print()
 
 
-#if __name__ == '__main__':
-#    test()
+if __name__ == '__main__':
+    test()
 
     

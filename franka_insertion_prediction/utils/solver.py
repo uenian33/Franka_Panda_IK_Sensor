@@ -13,8 +13,8 @@ class Solver(object):
         self.model = model#Transformer(args)#.cuda()
         self.mse = nn.MSELoss()
 
-        self.model_save_path=os.path.join(self.args['model_path'], 'Transformer.pt')
-        self.finalmodel_save_path=os.path.join(self.args['model_path'], 'Transformer_final.pt')
+        self.pretrain_model_save_path=os.path.join(self.args['pretrain_model_path'])
+        self.online_model_save_path=os.path.join(self.args['online_model_path'])
 
         #print('--------Network--------')
         #print(self.model)
@@ -57,7 +57,10 @@ class Solver(object):
         return train_acc, test_acc
 
     def load_model(self):
-        self.model.load_state_dict(torch.load(self.model_save_path))
+        if self.args['resume']:
+            self.model.load_state_dict(torch.load(self.online_model_save_path))
+        else:
+            self.model.load_state_dict(torch.load(self.pretrain_model_save_path))
         #model.eval()
         return
 
@@ -107,10 +110,13 @@ class Solver(object):
 
                 if mse > best_acc:
                     best_acc = mse
-                    self.save_model(self.model_save_path)
+                    if self.args['resume']:
+                        self.save_model(self.online_model_save_path)
+                    else:
+                        self.save_model(self.pretrain_model_save_path)
 
             cos_decay.step()
-            self.save_model(self.finalmodel_save_path)
+            #self.save_model(self.finalmodel_save_path)
 
         
 class SequenceSolver(object):

@@ -5,8 +5,25 @@ num_workers: 1
 lr: 0.001
 log_step: 50
 
+
+
 data_path: 'data/expert_recordings.pkl'
-prior_traj_path: 'data/trajectories/expert_joints_poses.npy'
-prior_cartesian_path: 'data/trajectories/expert_cartesian_poses.npy'
-model_path: 'weights/'
+
+#prior_traj_path: 'data/trajectories/expert_joints_poses.npy'
+#prior_cartesian_path: 'data/trajectories/expert_cartesian_poses.npy'
+prior_traj_path: 'data/online/expert_joints_poses_new.npy'
+prior_cartesian_path: 'data/online/expert_cartesian_poses_new.npy'
+prior_targets_path: 'data/online/expert_targets.npy'
+explore_prior_path: 'data/raw_explore/'
+
+pretrain_model_path: 'weights/pretrain.pt'
+online_model_path: 'weights/pretrain.pt'
+
+
+online_data_save_path: 'data/online/online_xs_ys.npy'
+
+model_type: 'sequence'
+#'single', 'sequence'
+
 load_model: False
+resume: False

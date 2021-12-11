@@ -167,11 +167,12 @@ class TModel(nn.Module):
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
+
         return self.mlp_head(x)  # linear output
 
 
-class TSequenceModel(nn.Module):
-    def __init__(self, patch_dim, num_patches, force_patch_dim, force_num_patches, out_dim, dim, depth, heads, mlp_dim, pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.):
+class TransformerLatentModel(nn.Module):
+    def __init__(self, patch_dim, num_patches, dim, depth, heads, pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.):
         super().__init__()
         #assert image_size % patch_size == 0, 'Image dimensions must be divisible by the patch size.'  # 保证一定能够完整切块
         #num_patches = (image_size // patch_size) ** 2  # 获取图像切块的个数
@@ -191,45 +192,13 @@ class TSequenceModel(nn.Module):
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))  # 分类令牌，可训练
         self.dropout = nn.Dropout(emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)  # Transformer模块
+        self.transformer = Transformer(dim, depth, heads, dim_head, patch_dim, dropout)  # Transformer模块
 
         self.pool = pool
         self.to_latent = nn.Identity()  # 占位操作
 
-        self.mlp_head = nn.Sequential(
-            nn.LayerNorm(dim),  # 正则化
-            nn.Linear(dim, out_dim)  # linear output
-        )
 
-        # the transfromer for external forces
-        self.force_to_patch_embedding = nn.Sequential(
-            nn.Linear(force_patch_dim, force_patch_dim),  # 对分割好的图像块进行线性处理（全连接），输入维度为每一个小块的所有像素个数，输出为dim（函数传入的参数）
-        ) 
-        self.force_pos_embedding = nn.Parameter(torch.randn(1, force_num_patches + 1, force_patch_dim))  # 位置编码，获取一组正态分布的数据用于训练
-        self.force_cls_token = nn.Parameter(torch.randn(1, 1, force_patch_dim))  # 分类令牌，可训练
-        self.force_transformer = Transformer(force_patch_dim, depth, heads, dim_head, patch_dim, dropout)  # Transformer模块
-
-    def forward(self, x, f):
-        # first transformer for forces
-        force = self.force_to_patch_embedding(f)
-        fb, fn, _ = force.shape  # shape (b, n, 1024)
-
-        force_cls_tokens = repeat(self.force_cls_token, '() n d -> b n d', b = fb)  # 分类令牌，将self.cls_token（形状为1, 1, dim）赋值为shape (b, 1, dim)
-        force = torch.cat((force_cls_tokens, force), dim=1)  # cat the token into inputs，x's shape (b, n+1, 1024)
-        force += self.force_pos_embedding[:, :(fn + 1)]  # postion encoding，shape (b, n+1, 1024)
-        force = self.dropout(force)
-
-        force = self.force_transformer(force)  # transformer operation
-
-        force = force.mean(dim = 1) if self.pool == 'mean' else force[:, 0]
-
-        force = self.to_latent(force) # now shape is [B, patch_num]
-
-        force = force.unsqueeze(1) # # now shape is [B, 1, patch_num]
-
-        # stack the force encoder outputs with other inputs
-        x = torch.cat((x,force), dim=1)
-
+    def forward(self, x):
         #print(x.type())
         x = self.to_patch_embedding(x)  # 切块操作，shape (b, n, dim)，b为批量，n为切块数目，dim为最终线性操作时输入的神经元个数
         b, n, _ = x.shape  # shape (b, n, 1024)
@@ -244,7 +213,37 @@ class TSequenceModel(nn.Module):
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
-        return self.mlp_head(x)  # linear output
+
+        return x  # linear output
+
+
+class TSequenceModel(nn.Module):
+    def __init__(self, patch_dim, num_patches, out_dim, dim, depth, heads, mlp_dim, pool = 'cls', dim_head = 64, dropout = 0.01, emb_dropout = 0.):
+        super().__init__()
+
+        self.seq_model1 = TransformerLatentModel(patch_dim, num_patches, dim, depth//2, heads, pool, dim_head, dropout, emb_dropout)
+        self.seq_model2 = TransformerLatentModel(patch_dim, num_patches, dim, depth//2, heads, pool, dim_head, dropout, emb_dropout)
+        self.seq_model3 = TransformerLatentModel(patch_dim, num_patches, dim, depth//2, heads, pool, dim_head, dropout, emb_dropout)
+        
+        self.fusion_model = TransformerLatentModel(dim, 3, dim, depth, heads, pool, dim_head, dropout, emb_dropout)
+       
+        self.mlp_head = nn.Sequential(
+            nn.LayerNorm(dim),  # 正则化
+            nn.Linear(dim, out_dim)  # linear output
+        )
+
+      
+    def forward(self, x):
+        seq_emd1 = self.seq_model1(x[:,0])
+        seq_emd2 = self.seq_model2(x[:,1])
+        seq_emd3 = self.seq_model3(x[:,2])
+        #print(seq_emd1.shape,seq_emd2.shape,seq_emd3.shape, )
+
+        seq_emd = torch.stack((seq_emd1,seq_emd2,seq_emd3),dim=1)
+
+        fusion = self.fusion_model(seq_emd)
+        
+        return self.mlp_head(fusion)  # linear output
 
 
 

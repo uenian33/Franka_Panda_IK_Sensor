@@ -18,5 +18,7 @@ model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_
 
 online_data_save_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/online_xs_ys.npy'
 
+model_type: 'single'
+#, 'sequence'
 load_model: False
 resume: False
