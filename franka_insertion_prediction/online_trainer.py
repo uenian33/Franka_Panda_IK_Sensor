@@ -117,7 +117,7 @@ class OnlineLearner(object):
 
     def add_training_data(self, infos, cartesian_traj):
         print(len(self.train_set.raw_xs))
-
+        
         if self.args['model_type']=='single':
             for iid, info in enumerate(infos):
                 # generate inputs

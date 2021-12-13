@@ -88,12 +88,17 @@ class TargetPoseSequenceDataset(Dataset):
                     if (y_[0]==y_[1]).all() and (y_[0]==y_[2]).all():
                         self.raw_ys.append(y)
                         self.raw_xs.append(x)
-            #print(self.raw_xs)
+
         else:
             print('load previous generated online data...')
             path = self.configs['online_data_save_path']
             with open(path, 'rb') as data_file:
                 online_data = pickle.load(data_file)
+
+            self.raw_xs, self.raw_ys = online_data[0], online_data[1]
+
+            """
+            This is the version that load sequence data from single stored dataset
             for iid in range(len(online_data[0])-self.sequence_size):
                 x_ = []
                 y_ = []
@@ -113,6 +118,7 @@ class TargetPoseSequenceDataset(Dataset):
                     self.raw_xs.append(x)
                 else:
                     print('not the same trajectory', y)
+            """
         
         self.convert_data()
 

@@ -1,0 +1,26 @@
+epochs: 10000
+batch_size: 128
+n_outputs: 3
+num_workers: 1
+lr: 0.001
+log_step: 50
+
+data_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/expert_recordings.pkl'
+
+prior_traj_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/sequence/expert_joints_poses_new.npy'
+prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/sequence/expert_cartesian_poses_new.npy'
+prior_targets_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/sequence/expert_targets.npy'
+explore_prior_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/raw_explore/'
+
+pretrain_model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/prertain_sequence.pt'
+online_model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/online_sequence.pt'
+
+
+online_data_save_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/sequence/online_xs_ys.npy'
+
+model_type: 'sequence'
+#single, 'sequence'
+load_model: False
+
+resume: True
+sequence_size: 3
