@@ -12,12 +12,15 @@ prior_cartesian_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controlle
 prior_targets_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/expert_targets.npy'
 explore_prior_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/raw_explore/'
 
-model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/'
+pretrain_model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/prertain_sequence.pt'
+online_model_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/weights/online_sequence.pt'
+
 
 online_data_save_path: '/home/alex/catkin_ws/src/panda-insert/src/cobot_controllers/franka_insertion_prediction/data/online/online_xs_ys.npy'
 
-model_type: 'single'
-#, 'sequence'
+model_type: 'sequence'
+#single, 'sequence'
 load_model: False
 
 resume: True
+sequence_size: 3

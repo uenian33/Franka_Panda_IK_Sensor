@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 import utils.transformation as transformation
 
-def parse_xy(info, pose_quat):
+def parse_xy(info, pose_quat=None):
     previous_ee_pose_quat = info['previous_ee_pose_quat']
     previous_ee_pose_euler = transformation.euler_from_quaternion(previous_ee_pose_quat[3:])
     previous_ee_pose = np.append(previous_ee_pose_quat[:3], previous_ee_pose_euler)
@@ -25,14 +25,17 @@ def parse_xy(info, pose_quat):
 
     x = np.stack([previous_ee_pose,delta_ee_pose,ee_wrench])#.flatten()
 
-    # use x, y, skew as the prediction label
-    position = pose_quat[:3]
-    pose = pose_quat[3:]
-    euler = transformation.euler_from_quaternion(pose)
-    euler = np.array(euler) / np.pi * 180
-    y = np.array([position[0]*1000, position[1]*1000, euler[0]]).astype(np.float64)
+    if pose_quat is not None:
+        # use x, y, skew as the prediction label
+        position = pose_quat[:3]
+        pose = pose_quat[3:]
+        euler = transformation.euler_from_quaternion(pose)
+        euler = np.array(euler) / np.pi * 180
+        y = np.array([position[0]*1000, position[1]*1000, euler[0]]).astype(np.float64)
 
-    return x,y
+        return x,y
+    else:
+        return x
 
 class TargetPoseSequenceDataset(Dataset):
     """sequence dataset."""
@@ -54,7 +57,7 @@ class TargetPoseSequenceDataset(Dataset):
         self.raw_ys = []
         self.raw_xs = []
 
-        self.sequence_size = 3
+        self.sequence_size = self.configs['sequence_size']
 
         self.load_data()
 
@@ -97,14 +100,14 @@ class TargetPoseSequenceDataset(Dataset):
                 for eid, x_meta in enumerate(online_data[0][iid:iid+self.sequence_size]):
                     #print(x_meta)
                     x_.append(x_meta)
-                    y_.append(online_data[1][eid])
+                    y_.append(online_data[1][iid+eid])
 
                 x = np.array(x_)
                 y = np.array(y_[0])
                 #print(x[0])
 
-                print('........')
-                print(y_[0])
+                #print('........')
+                #print(y_[0])
                 if (y_[0]==y_[1]).all() and (y_[0]==y_[2]).all():
                     self.raw_ys.append(y)
                     self.raw_xs.append(x)

@@ -126,8 +126,8 @@ class SequenceSolver(object):
         self.model = model#Transformer(args)#.cuda()
         self.mse = nn.MSELoss()
 
-        self.model_save_path=os.path.join(self.args['model_path'], 'Transformer.pt')
-        self.finalmodel_save_path=os.path.join(self.args['model_path'], 'Transformer_final.pt')
+        self.pretrain_model_save_path=os.path.join(self.args['pretrain_model_path'])
+        self.online_model_save_path=os.path.join(self.args['online_model_path'])
 
         print('--------Network--------')
         print(self.model)

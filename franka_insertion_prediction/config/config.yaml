@@ -27,3 +27,4 @@ model_type: 'sequence'
 
 load_model: False
 resume: False
+sequence_size: 3

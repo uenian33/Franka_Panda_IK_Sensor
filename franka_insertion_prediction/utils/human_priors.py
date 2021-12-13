@@ -116,7 +116,8 @@ class HumanPrior(object):
 		targets[:,1] = targets[:,1]*1000
 		# * np.array([[1000, 1000,]])
 		print(preds,targets)
-		closest_id = np.argmin(np.linalg.norm(targets-preds))
+		closest_id = np.argmin(np.linalg.norm(targets-preds, axis=1))
+		print(targets[closest_id], np.linalg.norm(targets-preds, axis=1))
 
 		return self.joint_trajs[closest_id][::sample_ratio]
 

@@ -10,7 +10,7 @@ import numpy as np
 from utils.solver import Solver, SequenceSolver
 from utils.transformation import quaternion_from_euler, euler_from_quaternion
 from utils.transformer import TModel, SimpleNet, TSequenceModel
-from utils.data_loader import get_loader, get_sequence_loader, TargetPoseDataset, TargetPoseSequenceDataset
+from utils.data_loader import parse_xy, get_loader, get_sequence_loader, TargetPoseDataset, TargetPoseSequenceDataset
 from utils.human_priors import HumanPrior
 
 class OnlineLearner(object):
@@ -117,36 +117,33 @@ class OnlineLearner(object):
 
     def add_training_data(self, infos, cartesian_traj):
         print(len(self.train_set.raw_xs))
-        for iid, info in enumerate(infos):
-            # generate inputs
-            x = self.process_data_to_inputs(info)
-            self.train_set.raw_xs.append(x)
 
-            # use x, y, skew as the prediction label
-            position = infos[-1]['ee_pose_quat'][:3]
-            pose = infos[-1]['ee_pose_quat'][3:]
-            euler = euler_from_quaternion(pose)
-            euler = np.array(euler) / np.pi * 180
-            y = np.array([position[0]*1000, position[1]*1000, euler[0]]).astype(np.float64)
+        if self.args['model_type']=='single':
+            for iid, info in enumerate(infos):
+                # generate inputs
+                x, y = parse_xy(info,cartesian_traj[-1])
+                self.train_set.raw_xs.append(x)
+                self.train_set.raw_ys.append(y)
 
-            self.train_set.raw_ys.append(y)
+        else:
+            for iid, info in enumerate(infos[:-self.args['sequence_size']]): 
+                x_ = []
+                for e in infos[iid:iid+self.args['sequence_size']]:
+                    x_meta, y_meta = parse_xy(info, cartesian_traj[-1])
+                    #print(x_meta)
+                    x_.append(x_meta)
 
-        #print(len(self.train_set.raw_xs), len(cartesian_traj))
+                x = np.array(x_)
+                y = np.array(y_meta)
 
+                self.train_set.raw_ys.append(y)
+                self.train_set.raw_xs.append(x)
+        
         self.train_set.convert_data()
 
-    def process_data_to_inputs(self, info):
-        # use previous ee pose, ee velocities, ee wrench for task laerning
-        previous_ee_pose_quat = info['previous_ee_pose_quat']
-        previous_ee_pose_euler = euler_from_quaternion(previous_ee_pose_quat[3:])
-        previous_ee_pose = np.append(previous_ee_pose_quat[:3], previous_ee_pose_euler)
-        
-        ee_cartesian_velocities = np.mean(np.array(info['ee_cartesian_velocities']), axis=0)
-        ee_wrench = np.mean(np.array(info['ee_cartesian_wrench_sequence']), axis=0)
+    def process_data_to_inputs(self, infos, pose=None):
 
-        
-        x = np.stack([previous_ee_pose,ee_cartesian_velocities,ee_wrench])#.flatten()
-        return x
+        return parse_xy(infos, pose)
 
     def add_human_prior(self, traj, targets):
         self.human_priors.add_prior(traj, targets)
@@ -159,7 +156,7 @@ class OnlineLearner(object):
         return
 
     def save_model(self):
-        self.solver.save_model(self.solver.finalmodel_save_path)
+        self.solver.save_model(self.args['online_model_path'])
 
     def save_human_prior(self):
         self.human_priors.save_prior()
@@ -174,7 +171,6 @@ class OnlineLearner(object):
         
         
 def test():
-
     #args['model_path = os.path.join(args['model_path)
     learner = OnlineLearner(args_path='config/config.yaml')
     learner.learn()
